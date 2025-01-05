@@ -13,7 +13,10 @@ def plot_wage_distribution(df):
     yvals = np.arange(1, len(sorted_actual) + 1) / len(sorted_actual)
     fig.add_trace(
         go.Scatter(
-            x=sorted_actual, y=yvals, name="Actual Wage", line=dict(color="blue")
+            x=sorted_actual,
+            y=yvals,
+            name="Actual Wage",
+            line=dict(color="rgb(0, 0, 255)"),  # Blue
         )
     )
 
@@ -22,7 +25,10 @@ def plot_wage_distribution(df):
     yvals_prev = np.arange(1, len(sorted_prev) + 1) / len(sorted_prev)
     fig.add_trace(
         go.Scatter(
-            x=sorted_prev, y=yvals_prev, name="Prevailing Wage", line=dict(color="red")
+            x=sorted_prev,
+            y=yvals_prev,
+            name="Prevailing Wage",
+            line=dict(color="rgb(128, 128, 128)"),  # Gray
         )
     )
 
@@ -31,80 +37,55 @@ def plot_wage_distribution(df):
         xaxis_title="Annual Wage ($)",
         yaxis_title="Cumulative Probability",
         height=500,
+        xaxis=dict(tickformat="$,.0f"),  # Format x-axis ticks as dollars
     )
 
     return fig
 
 
-def plot_top_employers(df):
-    """Create top employers plot"""
-    top_employers = df["EMPLOYER_NAME"].value_counts().head(10)
-
-    fig = go.Figure(
-        data=[
-            go.Bar(
-                x=top_employers.index,
-                y=top_employers.values,
-                text=top_employers.values,
-                textposition="auto",
-            )
-        ]
+def create_employer_table(df):
+    """Create employer statistics table"""
+    employer_stats = (
+        df.groupby("EMPLOYER_NAME")
+        .agg({"ANNUAL_WAGE": ["count", "mean", "median"]})
+        .reset_index()
     )
 
-    fig.update_layout(
-        title="Top 10 Employers",
-        xaxis_title="Employer",
-        yaxis_title="Number of Applications",
-        xaxis_tickangle=45,
-        height=500,
+    employer_stats.columns = ["Employer", "Number of H1Bs", "Mean Wage", "Median Wage"]
+    employer_stats = employer_stats.sort_values("Number of H1Bs", ascending=False).head(
+        10
     )
 
-    return fig
+    # Round wage columns to nearest dollar
+    employer_stats["Mean Wage"] = employer_stats["Mean Wage"].round(0)
+    employer_stats["Median Wage"] = employer_stats["Median Wage"].round(0)
 
-
-def plot_employer_wages(df):
-    """Create employer wages plot"""
-    top_employers = df["EMPLOYER_NAME"].value_counts().head(10).index
-    employer_wages = (
-        df[df["EMPLOYER_NAME"].isin(top_employers)]
-        .groupby("EMPLOYER_NAME")
-        .agg({"ANNUAL_WAGE": "mean", "ANNUAL_PREVAILING_WAGE": "mean"})
-        .sort_values("ANNUAL_WAGE")
+    # Format table data
+    table_data = go.Table(
+        header=dict(
+            values=[
+                "Employer",
+                "Number of H1Bs",
+                "Mean Annual Wage",
+                "Median Annual Wage",
+            ],
+            align="left",
+            font=dict(size=12),
+        ),
+        cells=dict(
+            values=[
+                employer_stats["Employer"],
+                employer_stats["Number of H1Bs"].apply(lambda x: f"{x:,}"),
+                employer_stats["Mean Wage"].apply(lambda x: f"${x:,.0f}"),
+                employer_stats["Median Wage"].apply(lambda x: f"${x:,.0f}"),
+            ],
+            align="left",
+            font=dict(size=11),
+        ),
     )
 
-    fig = go.Figure()
-
-    # Add actual wages
-    fig.add_trace(
-        go.Bar(
-            y=employer_wages.index,
-            x=employer_wages["ANNUAL_WAGE"],
-            name="Actual Wage",
-            orientation="h",
-            text=[f"${x:,.0f}" for x in employer_wages["ANNUAL_WAGE"]],
-            textposition="auto",
-        )
-    )
-
-    # Add prevailing wages
-    fig.add_trace(
-        go.Bar(
-            y=employer_wages.index,
-            x=employer_wages["ANNUAL_PREVAILING_WAGE"],
-            name="Prevailing Wage",
-            orientation="h",
-            text=[f"${x:,.0f}" for x in employer_wages["ANNUAL_PREVAILING_WAGE"]],
-            textposition="auto",
-        )
-    )
-
-    fig.update_layout(
-        barmode="group",
-        title="Average Wages by Top Employers",
-        xaxis_title="Annual Wage ($)",
-        yaxis_title="Employer",
-        height=500,
-    )
+    fig = go.Figure(data=[table_data])
+    fig.update_layout(title="Top 10 Employers by Number of Certified H1Bs", height=400)
 
     return fig
 
@@ -119,6 +100,10 @@ def plot_wage_ratio_distribution(df):
         labels={"WAGE_RATIO": "Actual Wage / Prevailing Wage"},
     )
 
-    fig.update_layout(showlegend=False, height=400)
+    fig.update_layout(
+        showlegend=False,
+        height=400,
+        xaxis=dict(tickformat=".2f"),  # Format x-axis ticks to 2 decimal places
+    )
 
     return fig
