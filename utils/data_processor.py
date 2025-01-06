@@ -39,9 +39,6 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
         lambda x: annualize_wage(x, "PREVAILING_WAGE", "PW_UNIT_OF_PAY"), axis=1
     )
 
-    # Filter out invalid wages
-    df = filter_invalid_wages(df, MIN_WAGE, MAX_WAGE)
-
     # Calculate wage ratio
     df["WAGE_RATIO"] = calculate_wage_ratio(df)
 
