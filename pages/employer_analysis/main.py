@@ -1,5 +1,7 @@
 import streamlit as st
-from . import metrics, tables, visualizations
+from .size_analysis import show_employer_size_distribution
+from .wage_analysis import show_wage_by_employer_size
+from .top_employers import show_top_employers_table
 
 
 def show_employer_analysis(df):
@@ -17,7 +19,6 @@ def show_employer_analysis(df):
         )
 
     with col2:
-        # Calculate concentration
         top_10_share = df["EMPLOYER_NAME"].value_counts().head(10).sum() / len(df) * 100
         st.metric(
             "Top 10 Employers Share",
@@ -37,10 +38,10 @@ def show_employer_analysis(df):
     tab1, tab2, tab3 = st.tabs(["Top Employers", "Size Distribution", "Wage Analysis"])
 
     with tab1:
-        tables.show_top_employers_table(df)
+        show_top_employers_table(df)
 
     with tab2:
-        visualizations.show_employer_size_distribution(df)
+        show_employer_size_distribution(df)
 
     with tab3:
-        visualizations.show_wage_by_employer_size(df)
+        show_wage_by_employer_size(df)

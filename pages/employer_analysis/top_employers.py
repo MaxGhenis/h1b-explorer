@@ -3,16 +3,6 @@ import plotly.graph_objects as go
 import pandas as pd
 
 
-def show_top_employers_table(df):
-    """Display enhanced top employers table"""
-    employer_stats = calculate_employer_stats(df)
-
-    fig = create_employer_table(employer_stats)
-    st.plotly_chart(fig, use_container_width=True)
-
-    show_detailed_stats(df, employer_stats)
-
-
 def calculate_employer_stats(df):
     """Calculate statistics for top employers"""
     employer_stats = (
@@ -39,17 +29,13 @@ def calculate_employer_stats(df):
         "Primary SOC",
     ]
 
-    # Sort and get top 15
     employer_stats = employer_stats.sort_values("Certifications", ascending=False).head(
         15
     )
-
-    # Calculate market share
     total_certs = employer_stats["Certifications"].sum()
     employer_stats["Market Share"] = (
         employer_stats["Certifications"] / total_certs * 100
     )
-
     return employer_stats
 
 
@@ -86,14 +72,12 @@ def create_employer_table(employer_stats):
 
     fig = go.Figure(data=[table_data])
     fig.update_layout(title="Top 15 Employers by Number of Certifications", height=500)
-
     return fig
 
 
 def show_detailed_stats(df, employer_stats):
     """Show detailed statistics in expandable section"""
     with st.expander("View Additional Statistics"):
-        # Show wage distribution for top 5 employers
         top_5_employers = employer_stats["Employer"].head().tolist()
         fig = go.Figure()
 
@@ -112,3 +96,11 @@ def show_detailed_stats(df, employer_stats):
         )
 
         st.plotly_chart(fig, use_container_width=True)
+
+
+def show_top_employers_table(df):
+    """Display enhanced top employers table"""
+    employer_stats = calculate_employer_stats(df)
+    fig = create_employer_table(employer_stats)
+    st.plotly_chart(fig, use_container_width=True)
+    show_detailed_stats(df, employer_stats)

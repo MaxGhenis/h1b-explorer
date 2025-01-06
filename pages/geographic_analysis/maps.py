@@ -6,14 +6,17 @@ import pandas as pd
 def show_certification_map(df):
     """Display choropleth map of certifications by state"""
     state_stats = df.groupby("WORKSITE_STATE").size().reset_index()
-    state_stats.columns = ["State", "Certifications"]
+    state_stats.columns = [
+        "WORKSITE_STATE",
+        "Certifications",
+    ]  # Changed from State to WORKSITE_STATE
 
     fig = create_choropleth(
         state_stats,
         "Certifications",
         "Number of H-1B Certifications by State",
         "Certifications",
-        "blues",  # Changed from viridis to blues
+        "blues",
     )
 
     st.plotly_chart(fig, use_container_width=True)
@@ -30,7 +33,7 @@ def show_wage_map(df):
         "ANNUAL_WAGE",
         "Median H-1B Wages by State",
         "Median Wage ($)",
-        "blues",  # Changed from viridis to blues
+        "blues",
         number_format="$,.0f",
     )
 
@@ -43,7 +46,7 @@ def create_choropleth(
     """Create a choropleth map"""
     fig = go.Figure(
         data=go.Choropleth(
-            locations=df["State"],
+            locations=df["WORKSITE_STATE"],  # Changed from State to WORKSITE_STATE
             z=df[value_col],
             locationmode="USA-states",
             colorscale=colorscale,
@@ -53,7 +56,6 @@ def create_choropleth(
     )
 
     fig.update_layout(title=title, geo_scope="usa", height=600)
-
     return fig
 
 
@@ -69,7 +71,7 @@ def show_wage_boxplot(df):
             go.Box(
                 y=state_data["ANNUAL_WAGE"],
                 name=state,
-                boxpoints="all",  # Show all points including outliers
+                boxpoints=False,  # Removed all points
             )
         )
 
