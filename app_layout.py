@@ -7,7 +7,7 @@ def setup_page():
     # Hide default menu items
     st.set_page_config(
         page_title="H-1B Visa Analysis Dashboard",
-        page_icon="📊",
+        page_icon="🌐",
         layout="wide",
         initial_sidebar_state="expanded",
         menu_items={"Get Help": None, "Report a bug": None, "About": None},
@@ -23,25 +23,29 @@ def setup_page():
     """
     st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-    st.title("📊 H-1B Visa Analysis Dashboard")
+    st.title("🌐 H-1B Visa Analysis Dashboard")
     st.caption(
         "Analysis of Labor Condition Applications (LCA) from July-September 2024"
     )
 
-    # Sidebar information
-    st.sidebar.header("About")
-    st.sidebar.markdown(
-        """
-        Data source: [DOL LCA Disclosure Data FY2024 Q4](https://www.dol.gov/sites/dolgov/files/ETA/oflc/pdfs/LCA_Disclosure_Data_FY2024_Q1.xlsx)
-        
-        Created by [Max Ghenis](https://maxghenis.com) and [Sam Peak](https://x.com/SpeakSamuel)
-        """
+    with st.expander("ℹ️ About DOL Certification"):
+        st.info(
+            "This data shows Labor Condition Applications certified by the Department of Labor (DOL), "
+            "which verifies wage requirements. Final H-1B approval requires additional Department of "
+            "Homeland Security verification of job qualifications and eligibility criteria."
+        )
+
+
+def setup_navigation():
+    """Setup navigation and return selected page"""
+    return st.sidebar.radio(
+        "📊 Analysis Type", ["Overview", "Employer Analysis", "Geographic Analysis"]
     )
 
 
 def setup_sidebar(df):
     """Setup sidebar filters and return filtered dataframe"""
-    st.sidebar.header("📊 Filters")
+    st.sidebar.header("Filters")
 
     # SOC code filter
     soc_codes = sorted(df["SOC_CODE"].unique())
@@ -76,6 +80,18 @@ def setup_sidebar(df):
         st.write("State:", selected_state)
         st.write("Wage Range: ${:,.0f} - ${:,.0f}".format(wage_range[0], wage_range[1]))
         st.write("Filtered Records: {:,}".format(len(filtered_df)))
+
+    # Add About section at the very bottom of sidebar using empty space
+    st.sidebar.empty()
+    st.sidebar.empty()
+    st.sidebar.markdown("---")
+    st.sidebar.markdown(
+        """
+        **About**\n
+        Data source: [DOL LCA Disclosure Data FY2024 Q4](https://www.dol.gov/sites/dolgov/files/ETA/oflc/pdfs/LCA_Disclosure_Data_FY2024_Q1.xlsx)\n
+        Created by [Max Ghenis](https://maxghenis.com) and [Sam Peak](https://x.com/SpeakSamuel)
+    """
+    )
 
     return filtered_df
 
