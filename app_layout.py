@@ -10,20 +10,9 @@ def setup_page():
         page_icon="🌐",
         layout="wide",
         initial_sidebar_state="expanded",
-        menu_items={"Get Help": None, "Report a bug": None, "About": None},
     )
 
-    # Hide the top-left hamburger menu and "app running" footer
-    hide_streamlit_style = """
-        <style>
-            #MainMenu {visibility: hidden;}
-            div[data-testid="stToolbar"] {visibility: hidden;}
-            footer {visibility: hidden;}
-        </style>
-    """
-    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-    st.title("🌐 H-1B Visa Analysis Dashboard")
+    st.title("H-1B Visa Analysis Dashboard")
     st.caption(
         "Analysis of Labor Condition Applications (LCA) from July-September 2024"
     )
@@ -34,13 +23,6 @@ def setup_page():
             "which verifies wage requirements. Final H-1B approval requires additional Department of "
             "Homeland Security verification of job qualifications and eligibility criteria."
         )
-
-
-def setup_navigation():
-    """Setup navigation and return selected page"""
-    return st.sidebar.radio(
-        "📊 Analysis Type", ["Overview", "Employer Analysis", "Geographic Analysis"]
-    )
 
 
 def setup_sidebar(df):
@@ -81,15 +63,14 @@ def setup_sidebar(df):
         st.write("Wage Range: ${:,.0f} - ${:,.0f}".format(wage_range[0], wage_range[1]))
         st.write("Filtered Records: {:,}".format(len(filtered_df)))
 
-    # Add About section at the very bottom of sidebar using empty space
-    st.sidebar.empty()
-    st.sidebar.empty()
+    # About section at the bottom
     st.sidebar.markdown("---")
     st.sidebar.markdown(
         """
         **About**\n
         Data source: [DOL LCA Disclosure Data FY2024 Q4](https://www.dol.gov/sites/dolgov/files/ETA/oflc/pdfs/LCA_Disclosure_Data_FY2024_Q1.xlsx)\n
-        Created by [Max Ghenis](https://maxghenis.com) and [Sam Peak](https://x.com/SpeakSamuel)
+        Creators: [Max Ghenis](https://maxghenis.com) and [Sam Peak](https://x.com/SpeakSamuel)\n
+        Source code: [GitHub](https://github.com/maxghenis/h1b-explorer)
     """
     )
 

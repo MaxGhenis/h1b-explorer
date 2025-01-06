@@ -4,7 +4,6 @@ import plotly.graph_objects as go
 
 def show_wage_analysis(df):
     """Display wage analysis section"""
-    st.subheader("💰 Wage Analysis")
     col1, col2 = st.columns(2)
 
     with col1:

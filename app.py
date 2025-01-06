@@ -1,5 +1,5 @@
 import streamlit as st
-from app_layout import setup_page, setup_sidebar, setup_navigation
+from app_layout import setup_page, setup_sidebar
 from pages.overview import show_overview
 from pages.employer_analysis import show_employer_analysis
 from pages.geographic_analysis import show_geographic_analysis
@@ -19,15 +19,19 @@ def main():
         # Setup sidebar and get filtered dataframe
         filtered_df = setup_sidebar(df)
 
-        # Show selected page based on navigation
-        page = setup_navigation()
+        # Create tabs
+        tab1, tab2, tab3 = st.tabs(
+            ["Overview", "Employer Analysis", "Geographic Analysis"]
+        )
 
-        if page == "Overview":
+        # Show content based on selected tab
+        with tab1:
             show_overview(filtered_df)
-        elif page == "Employer Analysis":
+        with tab2:
             show_employer_analysis(filtered_df)
-        else:
+        with tab3:
             show_geographic_analysis(filtered_df)
+
     else:
         st.error(
             "Failed to load data. Please check your internet connection and try again."
