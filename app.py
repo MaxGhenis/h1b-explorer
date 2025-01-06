@@ -1,103 +1,108 @@
 import streamlit as st
-import pandas as pd
-from utils.data_utils import load_data
-from utils.visualizations import (
-    plot_wage_distribution,
-    create_employer_table,
-    plot_wage_ratio_distribution,
+from pages import show_overview
+from pages.employer_analysis.main import show_employer_analysis
+from pages.geographic_analysis.main import show_geographic_analysis
+from utils import load_data, get_soc_title
+
+st.set_page_config(
+    page_title="H-1B Visa Analysis Dashboard",
+    page_icon="🌎",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 
 def main():
-    st.title("H1B Visa Wage Analysis Dashboard")
+    st.title("🌎 H-1B Visa Analysis Dashboard")
+    st.caption(
+        "Analysis of Labor Condition Applications (LCA) from July-September 2024"
+    )
 
     # Sidebar information
     st.sidebar.header("About")
     st.sidebar.markdown(
         """
-    This dashboard analyzes H1B visa application data from July-September 2024.
-    
-    Data source: [DOL LCA Disclosure Data FY2024 Q4](https://www.dol.gov/sites/dolgov/files/ETA/oflc/pdfs/LCA_Disclosure_Data_FY2024_Q1.xlsx)
-    
-    Created by [Max Ghenis](https://maxghenis.com) and [Sam Peak](https://x.com/SpeakSamuel)
-    """
+        Data source: [DOL LCA Disclosure Data FY2024 Q4](https://www.dol.gov/sites/dolgov/files/ETA/oflc/pdfs/LCA_Disclosure_Data_FY2024_Q1.xlsx)
+        
+        Created by [Max Ghenis](https://maxghenis.com) and [Sam Peak](https://x.com/SpeakSamuel)
+        """
     )
 
     # Load the data
-    df = load_data()
+    try:
+        df = load_data()
+    except Exception as e:
+        st.error(f"Error loading data: {str(e)}")
+        return
 
     if df is not None:
-        # Add a data refresh button
-        if st.button("Refresh Data"):
-            st.cache_data.clear()
-            df = load_data()
-            st.rerun()
+        # Filters in sidebar
+        st.sidebar.header("🔍 Filters")
 
         # SOC code filter
-        st.sidebar.header("Filters")
         soc_codes = sorted(df["SOC_CODE"].unique())
         selected_soc = st.sidebar.selectbox(
-            "Filter by SOC Code", ["All"] + list(soc_codes)
+            "Filter by SOC Code",
+            ["All"] + list(soc_codes),
+            format_func=lambda x: (
+                f"{x} - {get_soc_title(df, x)}" if x != "All" else "All"
+            ),
         )
 
-        # Apply filter and get total count
-        total_count = len(df)
+        # State filter
+        states = sorted(df["WORKSITE_STATE"].unique())
+        selected_state = st.sidebar.selectbox("Filter by State", ["All"] + list(states))
+
+        # Wage range filter
+        wage_min = float(df["ANNUAL_WAGE"].min())
+        wage_max = float(df["ANNUAL_WAGE"].max())
+        wage_range = st.sidebar.slider(
+            "Annual Wage Range ($)",
+            min_value=wage_min,
+            max_value=wage_max,
+            value=(wage_min, wage_max),
+            format="$%d",
+        )
+
+        # Apply filters
+        filtered_df = df.copy()
         if selected_soc != "All":
-            df = df[df["SOC_CODE"] == selected_soc]
-            st.subheader(f"Showing data for SOC Code: {selected_soc}")
+            filtered_df = filtered_df[filtered_df["SOC_CODE"] == selected_soc]
+        if selected_state != "All":
+            filtered_df = filtered_df[filtered_df["WORKSITE_STATE"] == selected_state]
+        filtered_df = filtered_df[
+            (filtered_df["ANNUAL_WAGE"] >= wage_range[0])
+            & (filtered_df["ANNUAL_WAGE"] <= wage_range[1])
+        ]
 
-        # Display total count
-        st.metric("Number of Certified Full-time H1Bs", f"{len(df):,}")
-
-        # Calculate statistics
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Average Actual Wage", f"${df['ANNUAL_WAGE'].mean():,.0f}")
-            st.metric("Median Actual Wage", f"${df['ANNUAL_WAGE'].median():,.0f}")
-
-        with col2:
-            st.metric(
-                "Average Prevailing Wage",
-                f"${df['ANNUAL_PREVAILING_WAGE'].mean():,.0f}",
+        # Show filters applied
+        with st.sidebar.expander("🔍 Active Filters"):
+            st.write("SOC Code:", selected_soc)
+            st.write("State:", selected_state)
+            st.write(
+                "Wage Range: \\${:,.0f} - \\${:,.0f}".format(
+                    wage_range[0], wage_range[1]
+                )
             )
-            st.metric(
-                "Median Prevailing Wage",
-                f"${df['ANNUAL_PREVAILING_WAGE'].median():,.0f}",
-            )
+            st.write("Filtered Records: {:,}".format(len(filtered_df)))
 
-        # Calculate percentage above prevailing wage
-        above_prevailing = (
-            df["ANNUAL_WAGE"] > df["ANNUAL_PREVAILING_WAGE"]
-        ).mean() * 100
-        st.metric(
-            "Percentage of Jobs Above Prevailing Wage", f"{above_prevailing:.1f}%"
+        # Navigation
+        page = st.sidebar.radio(
+            "📊 Navigation", ["Overview", "Employer Analysis", "Geographic Analysis"]
         )
 
-        # Show wage distributions
-        st.subheader("Wage Distributions")
-        st.plotly_chart(plot_wage_distribution(df))
+        # Show selected page
+        if page == "Overview":
+            show_overview(filtered_df)
+        elif page == "Employer Analysis":
+            show_employer_analysis(filtered_df)
+        else:
+            show_geographic_analysis(filtered_df)
 
-        # Show wage ratio distribution
-        st.plotly_chart(plot_wage_ratio_distribution(df))
-
-        # Show employer analysis
-        st.subheader("Employer Analysis")
-        st.plotly_chart(create_employer_table(df))
-
-        # Additional Statistics
-        st.subheader("Additional Statistics")
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.write("Wage Percentiles:")
-            percentiles = df["ANNUAL_WAGE"].quantile([0.1, 0.25, 0.5, 0.75, 0.9])
-            for p, v in percentiles.items():
-                st.write(f"{int(p*100)}th percentile: ${v:,.0f}")
-
-        with col2:
-            st.write("Sample Size:")
-            st.write(f"Total number of cases: {len(df):,}")
-            st.write(f"Number of unique employers: {df['EMPLOYER_NAME'].nunique():,}")
+    else:
+        st.error(
+            "Failed to load data. Please check your internet connection and try again."
+        )
 
 
 if __name__ == "__main__":
