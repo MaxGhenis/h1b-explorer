@@ -19,7 +19,7 @@ def setup_page():
 
     with st.expander("ℹ️ About DOL Certification"):
         st.info(
-            "This data shows Labor Condition Applications certified by the Department of Labor (DOL), "
+            "This data shows full-time Labor Condition Applications certified by the Department of Labor (DOL), "
             "which verifies wage requirements. Final H-1B approval requires additional Department of "
             "Homeland Security verification of job qualifications and eligibility criteria."
         )
