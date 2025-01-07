@@ -8,14 +8,14 @@ def plot_wage_distribution(df):
     """Create wage distribution plot"""
     fig = go.Figure()
 
-    # Add actual wage CDF
+    # Add offered wage CDF
     sorted_actual = np.sort(df["ANNUAL_WAGE"].dropna())
     yvals = np.arange(1, len(sorted_actual) + 1) / len(sorted_actual)
     fig.add_trace(
         go.Scatter(
             x=sorted_actual,
             y=yvals,
-            name="Actual Wage",
+            name="Offered Wage",
             line=dict(color="rgb(0, 0, 255)"),  # Blue
         )
     )
@@ -97,7 +97,7 @@ def plot_wage_ratio_distribution(df):
         x="WAGE_RATIO",
         nbins=50,
         title="Distribution of Actual/Prevailing Wage Ratio",
-        labels={"WAGE_RATIO": "Actual Wage / Prevailing Wage"},
+        labels={"WAGE_RATIO": "Offered Wage / Prevailing Wage"},
     )
 
     fig.update_layout(

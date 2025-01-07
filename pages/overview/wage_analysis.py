@@ -7,8 +7,8 @@ def show_wage_analysis(df):
     col1, col2 = st.columns(2)
 
     with col1:
-        st.metric("Average Actual Wage", f"${df['ANNUAL_WAGE'].mean():,.0f}")
-        st.metric("Median Actual Wage", f"${df['ANNUAL_WAGE'].median():,.0f}")
+        st.metric("Average Offered Wage", f"${df['ANNUAL_WAGE'].mean():,.0f}")
+        st.metric("Median Offered Wage", f"${df['ANNUAL_WAGE'].median():,.0f}")
 
     with col2:
         st.metric(
@@ -35,16 +35,16 @@ def plot_wage_distribution(df):
 
     fig = go.Figure()
 
-    # Add actual wage CDF (blue line)
+    # Add offered wage CDF (blue line)
     fig.add_trace(
         go.Scatter(
             x=actual,
             y=percentiles,
-            name="Actual Wage",
+            name="Offered Wage",
             line=dict(color="rgb(0, 0, 255)"),
             customdata=prevailing,
             hovertemplate=(
-                "%{y:.0%} of actual wages are less than $%{x:,.0f}.<br>"
+                "%{y:.0%} of offered wages are less than $%{x:,.0f}.<br>"
                 + "%{y:.0%} of prevailing wages are less than $%{customdata:,.0f}"
                 + "<extra></extra>"
             ),
